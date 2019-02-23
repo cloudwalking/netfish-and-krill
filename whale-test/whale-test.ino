@@ -29,8 +29,8 @@ DEFINE_GRADIENT_PALETTE(_whaleColors1) {
 };
 
 DEFINE_GRADIENT_PALETTE(_whaleColors2) {
-  0, 0, 96, 255,
-  255, 0, 255, 96
+  0, 0, 96, 196,
+  255, 0, 196, 96
 };
 
 void setup() {
@@ -66,13 +66,14 @@ void crawlBaseColor(float durationMS, unsigned long nowMS, int8_t *progressIndex
   // Fade the other pixels
   for (int8_t i = 0; i < NUM_PIXELS; i++ ) {
     if (i == next) { continue; }  
-    scratchBuffer[i].fadeToBlackBy(2);
+    scratchBuffer[i].fadeToBlackBy(1);
   }
 
   if (next != *progressIndex) {
     *progressIndex = next;
     scratchBuffer[next] =
       ColorFromPalette((CRGBPalette16)_whaleColors2, random8(), 255, LINEARBLEND);
+    scratchBuffer[next].maximizeBrightness(255);
   }
 
   // Step brightness to max, then down to the % we actually want.
@@ -86,7 +87,7 @@ void crawlBaseColor(float durationMS, unsigned long nowMS, int8_t *progressIndex
 
 //  Serial.print(next);
 //  Serial.print("\t");
-  Serial.println(fractionComplete * 255);
+//  Serial.println(shouldFadeIn ? "yes" : "no");
 }
 
 float calculateFractionComplete(unsigned long nowMS, float durationMS) {
