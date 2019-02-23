@@ -5,7 +5,7 @@
 #define COLOR_ORDER RGB
 #define NUM_LEDS 50
 #define BRIGHTNESS 255
-#define FRAMES_PER_SECOND 90
+#define FRAMES_PER_SECOND 72
 
 // NUM_PIXELS where PIXELS refers the virtual LED string. 
 // The virtual string is mapped to the physical string one or more times.
@@ -63,10 +63,12 @@ void crawlBaseColor(float durationMS, unsigned long nowMS, int8_t *progressIndex
   // to get "% done with this pixel, until we switch to next pixel"
   float nextFraction = fractionComplete * NUM_PIXELS - next;
 
-  // Fade the other pixels
+  // Fade the other pixels out.
+  // How many steps (as %) does it take to fade out, based on our framerate and speed?
+  int8_t fadeOutFraction = 100 / (durationMS / FRAMES_PER_SECOND);
   for (int8_t i = 0; i < NUM_PIXELS; i++ ) {
     if (i == next) { continue; }  
-    scratchBuffer[i].fadeToBlackBy(1);
+    scratchBuffer[i].fadeToBlackBy(max(1, fadeOutFraction));
   }
 
   if (next != *progressIndex) {
@@ -85,9 +87,9 @@ void crawlBaseColor(float durationMS, unsigned long nowMS, int8_t *progressIndex
     outBuffer[i] = scratchBuffer[i];
   }
 
-//  Serial.print(next);
+//  Serial.print(durationMS);
 //  Serial.print("\t");
-//  Serial.println(shouldFadeIn ? "yes" : "no");
+//  Serial.println(fadeOutActual);
 }
 
 float calculateFractionComplete(unsigned long nowMS, float durationMS) {
@@ -96,10 +98,17 @@ float calculateFractionComplete(unsigned long nowMS, float durationMS) {
 
 // Render out the pixel buffer to the physical LEDs. This emulates 3 strands using one single LED strand.
 void render() {
+  /*
+    data -> ----------    _pixelBuffer[0]
+                     |
+            ----------    _pixelBuffer[1]
+            |
+            ----------    _pixelBuffer[2]
+  */
   for (int8_t i = 0; i < NUM_PIXELS; i++) {
     // 0 - 11
     _leds[i] = _pixelBuffer[0][i];
-    // 23 - 12 (Backwards because we're one strand of LEDs and in this portion it's wrapped the other way.)
+    // 23 - 12 (Backwards -- one strand of LEDs, this is the middle section.)
     _leds[2 * NUM_PIXELS - 1 - i] = _pixelBuffer[1][i];
     // 24 - 36
     _leds[i + 2 * NUM_PIXELS] = _pixelBuffer[2][i];
