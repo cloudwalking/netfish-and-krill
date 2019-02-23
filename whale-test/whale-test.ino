@@ -29,8 +29,8 @@ DEFINE_GRADIENT_PALETTE(_whaleColors1) {
 };
 
 DEFINE_GRADIENT_PALETTE(_whaleColors2) {
-  0, 0, 0, 255,
-  255, 0, 255, 0
+  0, 0, 96, 255,
+  255, 0, 255, 96
 };
 
 void setup() {
@@ -49,7 +49,7 @@ void loop() {
 
   crawlBaseColor(3000, now, &_basePointer[0], _baseColor[0], _pixelBuffer[0]);
   crawlBaseColor(5000, now + 2000, &_basePointer[1], _baseColor[1], _pixelBuffer[1]);
-  crawlBaseColor(2000, now + 800, &_basePointer[2], _baseColor[2], _pixelBuffer[2]);
+  crawlBaseColor(2500, now + 800, &_basePointer[2], _baseColor[2], _pixelBuffer[2]);
 
   render();
 }
@@ -66,17 +66,13 @@ void crawlBaseColor(float durationMS, unsigned long nowMS, int8_t *progressIndex
   // Fade the other pixels
   for (int8_t i = 0; i < NUM_PIXELS; i++ ) {
     if (i == next) { continue; }  
-    scratchBuffer[i].fadeToBlackBy(5);
+    scratchBuffer[i].fadeToBlackBy(2);
   }
 
   if (next != *progressIndex) {
     *progressIndex = next;
     scratchBuffer[next] =
       ColorFromPalette((CRGBPalette16)_whaleColors2, random8(), 255, LINEARBLEND);
-//      ColorFromPalette((CRGBPalette16)_whaleColors2, /*random8()*/254);
-//      ColorFromPalette((CRGBPalette16)_whaleColors2, fractionComplete * 255);
-//      CRGB(0, 255, 0);
-//      CRGB(255, 0, 0);
   }
 
   // Step brightness to max, then down to the % we actually want.
