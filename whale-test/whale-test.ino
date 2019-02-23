@@ -2,23 +2,35 @@
 
 #define DATA_PIN 3
 #define LED_TYPE WS2811
-#define COLOR_ORDER GRB
+#define COLOR_ORDER RGB
 #define NUM_LEDS 50
 #define BRIGHTNESS 255
-#define FRAMES_PER_SECOND 120
+#define FRAMES_PER_SECOND 90
 
-#define NUM_PIXELS 12
-CRGB _baseColor[NUM_PIXELS] = { 0 };
-int _basePointer = -1;
-CRGB _pixelBuffer[NUM_PIXELS] = { 0 };
+// NUM_PIXELS where PIXELS refers the virtual LED string. 
+// The virtual string is mapped to the physical string one or more times.
+#define NUM_PIXELS 16
+#define NUM_VIRTUAL_STRANDS 3
+
+// For "baseColor" animation.
+int8_t _basePointer[NUM_VIRTUAL_STRANDS] = { -1 };
+CRGB _baseColor[NUM_VIRTUAL_STRANDS][NUM_PIXELS] = { 0 };
+
+// Virtual LEDs.
+CRGB _pixelBuffer[NUM_VIRTUAL_STRANDS][NUM_PIXELS] = { 0 };
+
+// Physical LEDs.
 CRGB _leds[NUM_LEDS] = { 0 };
 
-DEFINE_GRADIENT_PALETTE(_whaleColors) {
-//  0, 0, 48, 170,
-//  255, 0, 174, 156
+DEFINE_GRADIENT_PALETTE(_whaleColors1) {
   0, 0, 38, 133,
   127, 0, 200, 224,
   255, 0, 149, 95
+};
+
+DEFINE_GRADIENT_PALETTE(_whaleColors2) {
+  0, 0, 0, 255,
+  255, 0, 255, 0
 };
 
 void setup() {
@@ -26,7 +38,7 @@ void setup() {
   Serial.begin(9600);
   FastLED.addLeds<LED_TYPE, DATA_PIN, COLOR_ORDER>(_leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
   FastLED.setBrightness(BRIGHTNESS);
-//  fill_solid(_leds, NUM_LEDS, CRGB::Black);
+  fill_solid(_leds, NUM_LEDS, CRGB::Black);
 }
 
 void loop() {
@@ -35,45 +47,50 @@ void loop() {
 
   unsigned long now = millis();
 
-  drawBaseColor(now);
-  
-
-  for (int i = 0; i < NUM_PIXELS; i++) {
-    _pixelBuffer[i] = _baseColor[i];
-  }
+  crawlBaseColor(3000, now, &_basePointer[0], _baseColor[0], _pixelBuffer[0]);
+  crawlBaseColor(5000, now + 2000, &_basePointer[1], _baseColor[1], _pixelBuffer[1]);
+  crawlBaseColor(2000, now + 800, &_basePointer[2], _baseColor[2], _pixelBuffer[2]);
 
   render();
 }
 
-void drawBaseColor(unsigned long nowMS) {
-  const float durationMS = 3000;
+void crawlBaseColor(float durationMS, unsigned long nowMS, int8_t *progressIndex, CRGB *scratchBuffer, CRGB *outBuffer) {
   double fractionComplete = calculateFractionComplete(nowMS, durationMS);
 
   // Use integer to automatically round down.
-  int next = fractionComplete * NUM_PIXELS;
+  int8_t next = fractionComplete * NUM_PIXELS;
   // Subtract the whole value from the whole + frational value 
   // to get "% done with this pixel, until we switch to next pixel"
   float nextFraction = fractionComplete * NUM_PIXELS - next;
 
   // Fade the other pixels
-  for (int i = 0; i < NUM_PIXELS; i++ ) {
+  for (int8_t i = 0; i < NUM_PIXELS; i++ ) {
     if (i == next) { continue; }  
-    _baseColor[i].fadeToBlackBy(3);
+    scratchBuffer[i].fadeToBlackBy(5);
   }
 
-  if (next != _basePointer) {
-    _basePointer = next;
-    // Use 1 for brightness, we will fade it in.
-    _baseColor[next] = ColorFromPalette((CRGBPalette16)_whaleColors, random8(), 1, LINEARBLEND);
+  if (next != *progressIndex) {
+    *progressIndex = next;
+    scratchBuffer[next] =
+      ColorFromPalette((CRGBPalette16)_whaleColors2, random8(), 255, LINEARBLEND);
+//      ColorFromPalette((CRGBPalette16)_whaleColors2, /*random8()*/254);
+//      ColorFromPalette((CRGBPalette16)_whaleColors2, fractionComplete * 255);
+//      CRGB(0, 255, 0);
+//      CRGB(255, 0, 0);
   }
 
   // Step brightness to max, then down to the % we actually want.
-  _baseColor[next].maximizeBrightness(255);
-  _baseColor[next].maximizeBrightness(nextFraction * 255);
+  scratchBuffer[next].maximizeBrightness(255);
+  scratchBuffer[next].maximizeBrightness(max(5, nextFraction * 255));
 
-  Serial.print(nextFraction);
-  Serial.print("\t");
-  Serial.println(255 * nextFraction);
+  // For this animation we just wholesale replace the out buffer.
+  for (int8_t i = 0; i < NUM_PIXELS; i++) {
+    outBuffer[i] = scratchBuffer[i];
+  }
+
+//  Serial.print(next);
+//  Serial.print("\t");
+  Serial.println(fractionComplete * 255);
 }
 
 float calculateFractionComplete(unsigned long nowMS, float durationMS) {
@@ -82,13 +99,13 @@ float calculateFractionComplete(unsigned long nowMS, float durationMS) {
 
 // Render out the pixel buffer to the physical LEDs. This emulates 3 strands using one single LED strand.
 void render() {
-  for (int i = 0; i < NUM_PIXELS; i++) {
+  for (int8_t i = 0; i < NUM_PIXELS; i++) {
     // 0 - 11
-    _leds[i] = _pixelBuffer[i];
+    _leds[i] = _pixelBuffer[0][i];
     // 23 - 12 (Backwards because we're one strand of LEDs and in this portion it's wrapped the other way.)
-    _leds[2 * NUM_PIXELS - 1 - i] = _pixelBuffer[i];
+    _leds[2 * NUM_PIXELS - 1 - i] = _pixelBuffer[1][i];
     // 24 - 36
-    _leds[i + 2 * NUM_PIXELS] = _pixelBuffer[i];
+    _leds[i + 2 * NUM_PIXELS] = _pixelBuffer[2][i];
   }
 }
 
