@@ -12,25 +12,18 @@
 #define NUM_PIXELS 16
 #define NUM_VIRTUAL_STRANDS 3
 
-// For "baseColor" animation.
+// For "crawlBaseColor" animation.
 int8_t _basePointer[NUM_VIRTUAL_STRANDS] = { -1 };
 CRGB _baseColor[NUM_VIRTUAL_STRANDS][NUM_PIXELS] = { 0 };
 
 // Virtual LEDs.
 CRGB _pixelBuffer[NUM_VIRTUAL_STRANDS][NUM_PIXELS] = { 0 };
-
 // Physical LEDs.
 CRGB _leds[NUM_LEDS] = { 0 };
 
-DEFINE_GRADIENT_PALETTE(_whaleColors1) {
-  0, 0, 38, 133,
-  127, 0, 200, 224,
-  255, 0, 149, 95
-};
-
-DEFINE_GRADIENT_PALETTE(_whaleColors2) {
-  0, 0, 96, 196,
-  255, 0, 196, 96
+DEFINE_GRADIENT_PALETTE(_whaleColors) {
+  0, 0, 0, 255,
+  255, 0, 255, 240
 };
 
 void setup() {
@@ -55,6 +48,8 @@ void loop() {
 }
 
 void crawlBaseColor(float durationMS, unsigned long nowMS, int8_t *progressIndex, CRGB *scratchBuffer, CRGB *outBuffer) {
+  const bool fadeColorIn = true;
+  
   double fractionComplete = calculateFractionComplete(nowMS, durationMS);
 
   // Use integer to automatically round down.
@@ -74,13 +69,15 @@ void crawlBaseColor(float durationMS, unsigned long nowMS, int8_t *progressIndex
   if (next != *progressIndex) {
     *progressIndex = next;
     scratchBuffer[next] =
-      ColorFromPalette((CRGBPalette16)_whaleColors2, random8(), 255, LINEARBLEND);
+      ColorFromPalette((CRGBPalette16)_whaleColors, random8(), 255, LINEARBLEND);
     scratchBuffer[next].maximizeBrightness(255);
   }
 
-  // Step brightness to max, then down to the % we actually want.
-  scratchBuffer[next].maximizeBrightness(255);
-  scratchBuffer[next].maximizeBrightness(max(5, nextFraction * 255));
+  if (fadeColorIn) {
+    // Step brightness to max, then down to the % we actually want.
+    scratchBuffer[next].maximizeBrightness(255);
+    scratchBuffer[next].maximizeBrightness(max(5, nextFraction * 255));
+  }
 
   // For this animation we just wholesale replace the out buffer.
   for (int8_t i = 0; i < NUM_PIXELS; i++) {
@@ -114,4 +111,3 @@ void render() {
     _leds[i + 2 * NUM_PIXELS] = _pixelBuffer[2][i];
   }
 }
-
