@@ -5,7 +5,7 @@
 #define BRIGHTNESS 255
 #define FRAMES_PER_SECOND 72
 
-#define NUM_PIXELS 8
+#define NUM_PIXELS 60
 #define NUM_STRIPS 6
 
 // For "crawlBaseColor" animation.
@@ -23,11 +23,22 @@ DEFINE_GRADIENT_PALETTE(_whaleColors) {
   255, 0, 255, 240
 };
 
-DEFINE_GRADIENT_PALETTE(_backColors) {
-  // Full blue.
-  0, 0, 0, 255,
-  // Turquoise?
-  255, 0, 100, 255
+DEFINE_GRADIENT_PALETTE(_palette_back_blue) {
+  0, 0, 64, 255,
+  64, 32, 64, 255,
+  128, 0, 16, 128,
+  129, 0, 0, 64,
+  255, 64, 0, 128
+};
+
+DEFINE_GRADIENT_PALETTE(_palette_back_turquoise) {
+  0, 0, 192, 255,
+  255, 0, 64, 64
+};
+
+DEFINE_GRADIENT_PALETTE(_palette_back_teal) {
+  0, 0, 128, 255,
+  255, 0, 64, 96
 };
 
 DEFINE_GRADIENT_PALETTE(_bellyColors) {
@@ -41,10 +52,7 @@ void setup() {
   delay(1000);
   Serial.begin(9600);
   
-//  FastLED.addLeds<WS2811_PORTD, NUM_STRIPS, COLOR_ORDER>(_leds, NUM_PIXELS);
-  // For current demo mode, we use 3 physical strips in serpent config for 6 virtual strips.
-  // For this reason, 2x NUM_PIXELS and 0.5x NUM_STRIPS
-  FastLED.addLeds<WS2811_PORTD, NUM_STRIPS / 2, COLOR_ORDER>(_leds, NUM_PIXELS * 2);
+  FastLED.addLeds<WS2811_PORTD, NUM_STRIPS, COLOR_ORDER>(_leds, NUM_PIXELS);
   
   FastLED.setBrightness(BRIGHTNESS);
   
@@ -65,14 +73,36 @@ void loop() {
 //  crawlBaseColor(1.0 * baseDuration, now + 800, &_baseColorPointer[2], _baseColor[2], _pixelBuffer[2]);
 
   float baseDuration = 4000;
-  crawlBaseColor(baseDuration, now, &_baseColorPointer[0], _baseColor[0], _pixelBuffer[0], _backColors);
-  crawlBaseColor(0.9 * baseDuration, now + 2500, &_baseColorPointer[1], _baseColor[1], _pixelBuffer[1], _bellyColors);
-  crawlBaseColor(1.1 * baseDuration, now + 500, &_baseColorPointer[2], _baseColor[2], _pixelBuffer[2], _bellyColors);
-  crawlBaseColor(1.05 * baseDuration, now + 800, &_baseColorPointer[3], _baseColor[3], _pixelBuffer[3], _bellyColors);
-  crawlBaseColor(0.95 * baseDuration, now + 1000, &_baseColorPointer[4], _baseColor[4], _pixelBuffer[4], _backColors);
-  crawlBaseColor(1.0 * baseDuration, now + 1200, &_baseColorPointer[5], _baseColor[5], _pixelBuffer[5], _backColors);
 
-  render_multi_strip_virtual();
+/////////////// PROD - USE BELOW CONFIG FOR NOW.
+//  // Back
+//  crawlBaseColor(1.0 * baseDuration, now + 1200, &_baseColorPointer[5], _baseColor[5], _pixelBuffer[5], _palette_back_turquoise);
+//  crawlBaseColor(0.95 * baseDuration, now + 1000, &_baseColorPointer[4], _baseColor[4], _pixelBuffer[4], _palette_back_teal);
+//  crawlBaseColor(baseDuration, now, &_baseColorPointer[0], _baseColor[0], _pixelBuffer[0], _palette_back_blue);
+//  
+//  // Belly
+//  crawlBaseColor(0.9 * baseDuration, now + 2500, &_baseColorPointer[1], _baseColor[1], _pixelBuffer[1], _bellyColors);
+//  crawlBaseColor(1.1 * baseDuration, now + 500, &_baseColorPointer[2], _baseColor[2], _pixelBuffer[2], _bellyColors);
+//  crawlBaseColor(1.05 * baseDuration, now + 800, &_baseColorPointer[3], _baseColor[3], _pixelBuffer[3], _bellyColors);
+//  
+//  render_multi_strip();
+/////////////// PROD - USE ABOVE CONFIG FOR NOW.
+
+// TEST ONLY BELOW.
+
+// Identifying strips.
+crawlBaseColor(baseDuration, now, &_baseColorPointer[2], _baseColor[2], _pixelBuffer[2], RainbowColors_p);
+crawlBaseColor(baseDuration, now, &_baseColorPointer[4], _baseColor[4], _pixelBuffer[4], RainbowColors_p);
+render_multi_strip();
+
+// Multistrip virtual
+//  crawlBaseColor(1.0 * baseDuration, now + 1200, &_baseColorPointer[5], _baseColor[5], _pixelBuffer[5], RainbowColors_p);
+//  crawlBaseColor(0.95 * baseDuration, now + 1000, &_baseColorPointer[4], _baseColor[4], _pixelBuffer[4], RainbowColors_p);
+//  crawlBaseColor(baseDuration, now, &_baseColorPointer[0], _baseColor[0], _pixelBuffer[0], RainbowColors_p);
+//  crawlBaseColor(0.9 * baseDuration, now + 2500, &_baseColorPointer[1], _baseColor[1], _pixelBuffer[1], RainbowColors_p);
+//  crawlBaseColor(1.1 * baseDuration, now + 500, &_baseColorPointer[2], _baseColor[2], _pixelBuffer[2], RainbowColors_p);
+//  crawlBaseColor(1.05 * baseDuration, now + 800, &_baseColorPointer[3], _baseColor[3], _pixelBuffer[3], RainbowColors_p);
+//  render_multi_strip_virtual();
 }
 
 void crawlBaseColor(float durationMS, unsigned long nowMS, int8_t *progressIndex, CRGB *scratchBuffer, CRGB *outBuffer, CRGBPalette16 palette) {
@@ -125,37 +155,24 @@ float calculateFractionComplete(unsigned long nowMS, float durationMS) {
   return (nowMS % (unsigned long)durationMS) / durationMS;
 }
 
-void render_multi_strip_virtual() {
-
-  // send odd strips forward, even strips backward
-  
-  for (int8_t strip = 0; strip < NUM_STRIPS; strip++) {
-    for (int8_t pixel = 0; pixel < NUM_PIXELS; pixel++) {
-      int8_t index = 0;
-
-      // Janky hack for current demo. Even strips play in reverse.
-      bool isReversed = strip % 2 == 0;
-      
-      if (isReversed) {
-        index = strip * NUM_PIXELS + NUM_PIXELS - pixel;
-      } else {
-        index = strip * NUM_PIXELS + pixel;
-      }
-      
-      _leds[index] = _pixelBuffer[strip][pixel];
-//      Serial.print(index);
-//      Serial.print(": ");
-//      Serial.print(_pixelBuffer[strip][pixel]);
-    }
-//    Serial.println();
-  }
-}
-
-// Render out the pixel buffer to the physical LEDs. Uses multiple LED strands.
-//void render_multi_strip() {
+// For rendering strangely shaped things.
+//void render_multi_strip_virtual() {
+//
+//  // send odd strips forward, even strips backward
+//  
 //  for (int8_t strip = 0; strip < NUM_STRIPS; strip++) {
 //    for (int8_t pixel = 0; pixel < NUM_PIXELS; pixel++) {
-//      int8_t index = strip * NUM_PIXELS + pixel;
+//      int8_t index = 0;
+//
+//      // Janky hack for current demo. Even strips play in reverse.
+//      bool isReversed = strip % 2 == 0;
+//      
+//      if (isReversed) {
+//        index = strip * NUM_PIXELS + NUM_PIXELS - pixel;
+//      } else {
+//        index = strip * NUM_PIXELS + pixel;
+//      }
+//      
 //      _leds[index] = _pixelBuffer[strip][pixel];
 ////      Serial.print(index);
 ////      Serial.print(": ");
@@ -164,6 +181,20 @@ void render_multi_strip_virtual() {
 ////    Serial.println();
 //  }
 //}
+
+// Render out the pixel buffer to the physical LEDs. Uses multiple LED strands.
+void render_multi_strip() {
+  for (int8_t strip = 0; strip < NUM_STRIPS; strip++) {
+    for (int8_t pixel = 0; pixel < NUM_PIXELS; pixel++) {
+      int8_t index = strip * NUM_PIXELS + pixel;
+      _leds[index] = _pixelBuffer[strip][pixel];
+//      Serial.print(index);
+//      Serial.print(": ");
+//      Serial.print(_pixelBuffer[strip][pixel]);
+    }
+//    Serial.println();
+  }
+}
 
 // Not currently used.
 //// Render out the pixel buffer to the physical LEDs. This emulates 3 strands using one single LED strand.
