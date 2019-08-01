@@ -5,7 +5,7 @@
 #define BRIGHTNESS 255
 #define FRAMES_PER_SECOND 72
 
-#define NUM_PIXELS 60
+#define NUM_PIXELS 75
 #define NUM_STRIPS 6
 
 // For "crawlBaseColor" animation.
@@ -49,14 +49,18 @@ DEFINE_GRADIENT_PALETTE(_bellyColors) {
 };
 
 void setup() {
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, HIGH);
+
   delay(1000);
   Serial.begin(9600);
-  
+
   FastLED.addLeds<WS2811_PORTD, NUM_STRIPS, COLOR_ORDER>(_leds, NUM_PIXELS);
-  
+
   FastLED.setBrightness(BRIGHTNESS);
-  
+
   fill_solid(_leds, NUM_STRIPS * NUM_PIXELS, CRGB::Black);
+  digitalWrite(LED_BUILTIN, HIGH);
 }
 
 void loop() {
@@ -65,54 +69,58 @@ void loop() {
 
   unsigned long now = millis();
 
-//  float baseDuration = 4000;
-//  crawlBaseColor(baseDuration, now, &_baseColorPointer[0], _baseColor[0], _pixelBuffer[0]);
-//  crawlBaseColor(1.6 * baseDuration, now + 2000, &_baseColorPointer[1], _baseColor[1], _pixelBuffer[1]);
-//  crawlBaseColor(0.8 * baseDuration, now + 800, &_baseColorPointer[2], _baseColor[2], _pixelBuffer[2]);
-//  crawlBaseColor(1.0 * baseDuration, now + 2000, &_baseColorPointer[1], _baseColor[1], _pixelBuffer[1]);
-//  crawlBaseColor(1.0 * baseDuration, now + 800, &_baseColorPointer[2], _baseColor[2], _pixelBuffer[2]);
+  //  float baseDuration = 4000;
+  //  crawlBaseColor(baseDuration, now, &_baseColorPointer[0], _baseColor[0], _pixelBuffer[0]);
+  //  crawlBaseColor(1.6 * baseDuration, now + 2000, &_baseColorPointer[1], _baseColor[1], _pixelBuffer[1]);
+  //  crawlBaseColor(0.8 * baseDuration, now + 800, &_baseColorPointer[2], _baseColor[2], _pixelBuffer[2]);
+  //  crawlBaseColor(1.0 * baseDuration, now + 2000, &_baseColorPointer[1], _baseColor[1], _pixelBuffer[1]);
+  //  crawlBaseColor(1.0 * baseDuration, now + 800, &_baseColorPointer[2], _baseColor[2], _pixelBuffer[2]);
 
+  /////////////// PROD - USE BELOW CONFIG FOR NOW.
+  //  float baseDuration = 4000;
+  // Back
+  //  crawlBaseColor(1.0 * baseDuration, now + 1200, &_baseColorPointer[5], _baseColor[5], _pixelBuffer[5], _palette_back_turquoise);
+  //  crawlBaseColor(0.95 * baseDuration, now + 1000, &_baseColorPointer[4], _baseColor[4], _pixelBuffer[4], _palette_back_teal);
+  //  crawlBaseColor(baseDuration, now, &_baseColorPointer[0], _baseColor[0], _pixelBuffer[0], _palette_back_blue);
+  //
+  //  // Belly
+  //  crawlBaseColor(0.9 * baseDuration, now + 2500, &_baseColorPointer[1], _baseColor[1], _pixelBuffer[1], _bellyColors);
+  //  crawlBaseColor(1.1 * baseDuration, now + 500, &_baseColorPointer[2], _baseColor[2], _pixelBuffer[2], _bellyColors);
+  //  crawlBaseColor(1.05 * baseDuration, now + 800, &_baseColorPointer[3], _baseColor[3], _pixelBuffer[3], _bellyColors);
+
+  //  render_multi_strip();
+  /////////////// PROD - USE ABOVE CONFIG FOR NOW.
+
+  // TEST ONLY BELOW.
+
+  // Identifying strips.
   float baseDuration = 4000;
+//  crawlBaseColor(baseDuration, now, &_baseColorPointer[0], _baseColor[0], _pixelBuffer[0], CloudColors_p);
+//  crawlBaseColor(baseDuration, now, &_baseColorPointer[1], _baseColor[1], _pixelBuffer[1], LavaColors_p);
+//  crawlBaseColor(baseDuration * 0.666, now, &_baseColorPointer[2], _baseColor[2], _pixelBuffer[2], ForestColors_p);
+  crawlBaseColor(baseDuration, now, &_baseColorPointer[3], _baseColor[3], _pixelBuffer[3], OceanColors_p);
+//  crawlBaseColor(baseDuration, now, &_baseColorPointer[4], _baseColor[4], _pixelBuffer[4], PartyColors_p);
+//  crawlBaseColor(baseDuration, now, &_baseColorPointer[5], _baseColor[5], _pixelBuffer[5], RainbowColors_p);
+  render_multi_strip();
 
-/////////////// PROD - USE BELOW CONFIG FOR NOW.
-//  // Back
-//  crawlBaseColor(1.0 * baseDuration, now + 1200, &_baseColorPointer[5], _baseColor[5], _pixelBuffer[5], _palette_back_turquoise);
-//  crawlBaseColor(0.95 * baseDuration, now + 1000, &_baseColorPointer[4], _baseColor[4], _pixelBuffer[4], _palette_back_teal);
-//  crawlBaseColor(baseDuration, now, &_baseColorPointer[0], _baseColor[0], _pixelBuffer[0], _palette_back_blue);
-//  
-//  // Belly
-//  crawlBaseColor(0.9 * baseDuration, now + 2500, &_baseColorPointer[1], _baseColor[1], _pixelBuffer[1], _bellyColors);
-//  crawlBaseColor(1.1 * baseDuration, now + 500, &_baseColorPointer[2], _baseColor[2], _pixelBuffer[2], _bellyColors);
-//  crawlBaseColor(1.05 * baseDuration, now + 800, &_baseColorPointer[3], _baseColor[3], _pixelBuffer[3], _bellyColors);
-//  
-//  render_multi_strip();
-/////////////// PROD - USE ABOVE CONFIG FOR NOW.
-
-// TEST ONLY BELOW.
-
-// Identifying strips.
-crawlBaseColor(baseDuration, now, &_baseColorPointer[2], _baseColor[2], _pixelBuffer[2], RainbowColors_p);
-crawlBaseColor(baseDuration, now, &_baseColorPointer[4], _baseColor[4], _pixelBuffer[4], RainbowColors_p);
-render_multi_strip();
-
-// Multistrip virtual
-//  crawlBaseColor(1.0 * baseDuration, now + 1200, &_baseColorPointer[5], _baseColor[5], _pixelBuffer[5], RainbowColors_p);
-//  crawlBaseColor(0.95 * baseDuration, now + 1000, &_baseColorPointer[4], _baseColor[4], _pixelBuffer[4], RainbowColors_p);
-//  crawlBaseColor(baseDuration, now, &_baseColorPointer[0], _baseColor[0], _pixelBuffer[0], RainbowColors_p);
-//  crawlBaseColor(0.9 * baseDuration, now + 2500, &_baseColorPointer[1], _baseColor[1], _pixelBuffer[1], RainbowColors_p);
-//  crawlBaseColor(1.1 * baseDuration, now + 500, &_baseColorPointer[2], _baseColor[2], _pixelBuffer[2], RainbowColors_p);
-//  crawlBaseColor(1.05 * baseDuration, now + 800, &_baseColorPointer[3], _baseColor[3], _pixelBuffer[3], RainbowColors_p);
-//  render_multi_strip_virtual();
+  // Multistrip virtual
+  //  crawlBaseColor(1.0 * baseDuration, now + 1200, &_baseColorPointer[5], _baseColor[5], _pixelBuffer[5], RainbowColors_p);
+  //  crawlBaseColor(0.95 * baseDuration, now + 1000, &_baseColorPointer[4], _baseColor[4], _pixelBuffer[4], RainbowColors_p);
+  //  crawlBaseColor(baseDuration, now, &_baseColorPointer[0], _baseColor[0], _pixelBuffer[0], RainbowColors_p);
+  //  crawlBaseColor(0.9 * baseDuration, now + 2500, &_baseColorPointer[1], _baseColor[1], _pixelBuffer[1], RainbowColors_p);
+  //  crawlBaseColor(1.1 * baseDuration, now + 500, &_baseColorPointer[2], _baseColor[2], _pixelBuffer[2], RainbowColors_p);
+  //  crawlBaseColor(1.05 * baseDuration, now + 800, &_baseColorPointer[3], _baseColor[3], _pixelBuffer[3], RainbowColors_p);
+  //  render_multi_strip_virtual();
 }
 
 void crawlBaseColor(float durationMS, unsigned long nowMS, int8_t *progressIndex, CRGB *scratchBuffer, CRGB *outBuffer, CRGBPalette16 palette) {
   const bool fadeColorIn = true;
-  
+
   double fractionComplete = calculateFractionComplete(nowMS, durationMS);
 
   // Use integer to automatically round down.
   int8_t target = fractionComplete * NUM_PIXELS;
-  // Subtract the whole value from the whole + frational value 
+  // Subtract the whole value from the whole + frational value
   // to get "% done with this pixel, until we switch to target pixel"
   float targetFraction = fractionComplete * NUM_PIXELS - target;
 
@@ -121,7 +129,9 @@ void crawlBaseColor(float durationMS, unsigned long nowMS, int8_t *progressIndex
   int8_t fadeOutFraction = 100 / (durationMS / FRAMES_PER_SECOND);
   int8_t fadeOutAdjust = durationMS >= 3000 ? -2 : 0;
   for (int8_t i = 0; i < NUM_PIXELS; i++ ) {
-    if (i == target) { continue; }  
+    if (i == target) {
+      continue;
+    }
     scratchBuffer[i].fadeToBlackBy(max(1, fadeOutFraction + fadeOutAdjust));
   }
 
@@ -146,9 +156,9 @@ void crawlBaseColor(float durationMS, unsigned long nowMS, int8_t *progressIndex
     outBuffer[i] = scratchBuffer[i];
   }
 
-//  Serial.print(durationMS);
-//  Serial.print("\t");
-//  Serial.println(fractionComplete);
+    Serial.print(durationMS);
+    Serial.print("\t");
+    Serial.println(fractionComplete);
 }
 
 float calculateFractionComplete(unsigned long nowMS, float durationMS) {
@@ -159,20 +169,20 @@ float calculateFractionComplete(unsigned long nowMS, float durationMS) {
 //void render_multi_strip_virtual() {
 //
 //  // send odd strips forward, even strips backward
-//  
+//
 //  for (int8_t strip = 0; strip < NUM_STRIPS; strip++) {
 //    for (int8_t pixel = 0; pixel < NUM_PIXELS; pixel++) {
-//      int8_t index = 0;
+//      int16_t index = 0;
 //
 //      // Janky hack for current demo. Even strips play in reverse.
 //      bool isReversed = strip % 2 == 0;
-//      
+//
 //      if (isReversed) {
 //        index = strip * NUM_PIXELS + NUM_PIXELS - pixel;
 //      } else {
 //        index = strip * NUM_PIXELS + pixel;
 //      }
-//      
+//
 //      _leds[index] = _pixelBuffer[strip][pixel];
 ////      Serial.print(index);
 ////      Serial.print(": ");
@@ -184,16 +194,34 @@ float calculateFractionComplete(unsigned long nowMS, float durationMS) {
 
 // Render out the pixel buffer to the physical LEDs. Uses multiple LED strands.
 void render_multi_strip() {
+  bool shouldLog = false;
+  if (shouldLog) { Serial.println(">>>>>>>>>"); }
+  
   for (int8_t strip = 0; strip < NUM_STRIPS; strip++) {
     for (int8_t pixel = 0; pixel < NUM_PIXELS; pixel++) {
-      int8_t index = strip * NUM_PIXELS + pixel;
+      int16_t index = strip * NUM_PIXELS + pixel;
       _leds[index] = _pixelBuffer[strip][pixel];
-//      Serial.print(index);
-//      Serial.print(": ");
-//      Serial.print(_pixelBuffer[strip][pixel]);
+      
+      if (shouldLog) {
+        // Prints out each pixel (r,g,b) for each strip.
+        Serial.print("i");
+        Serial.print(index);
+        Serial.print(":s");
+        Serial.print(strip);
+        Serial.print("p");
+        Serial.print(pixel);
+        Serial.print("=(");
+        Serial.print(_pixelBuffer[strip][pixel].red);
+        Serial.print(",");
+        Serial.print(_pixelBuffer[strip][pixel].green);
+        Serial.print(",");
+        Serial.print(_pixelBuffer[strip][pixel].blue);
+        Serial.print(") ");
+      }
     }
-//    Serial.println();
+    if (shouldLog) { Serial.println(); }
   }
+  if (shouldLog) { Serial.println("<<<<<<<<<"); }
 }
 
 // Not currently used.
