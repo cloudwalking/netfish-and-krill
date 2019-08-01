@@ -98,9 +98,9 @@ void loop() {
 //  crawlBaseColor(baseDuration, now, &_baseColorPointer[0], _baseColor[0], _pixelBuffer[0], CloudColors_p);
 //  crawlBaseColor(baseDuration, now, &_baseColorPointer[1], _baseColor[1], _pixelBuffer[1], LavaColors_p);
 //  crawlBaseColor(baseDuration * 0.666, now, &_baseColorPointer[2], _baseColor[2], _pixelBuffer[2], ForestColors_p);
-  crawlBaseColor(baseDuration, now, &_baseColorPointer[3], _baseColor[3], _pixelBuffer[3], OceanColors_p);
+  crawlBaseColor(baseDuration, now, &_baseColorPointer[3], _baseColor[3], _pixelBuffer[3], RainbowColors_p);
 //  crawlBaseColor(baseDuration, now, &_baseColorPointer[4], _baseColor[4], _pixelBuffer[4], PartyColors_p);
-//  crawlBaseColor(baseDuration, now, &_baseColorPointer[5], _baseColor[5], _pixelBuffer[5], RainbowColors_p);
+//  crawlBaseColor(baseDuration, now, &_baseColorPointer[5], _baseColor[5], _pixelBuffer[5], OceanColors_p);
   render_multi_strip();
 
   // Multistrip virtual
@@ -194,7 +194,7 @@ float calculateFractionComplete(unsigned long nowMS, float durationMS) {
 
 // Render out the pixel buffer to the physical LEDs. Uses multiple LED strands.
 void render_multi_strip() {
-  bool shouldLog = false;
+  bool shouldLog = true;
   if (shouldLog) { Serial.println(">>>>>>>>>"); }
   
   for (int8_t strip = 0; strip < NUM_STRIPS; strip++) {
