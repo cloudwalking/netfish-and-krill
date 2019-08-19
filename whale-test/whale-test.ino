@@ -5,8 +5,8 @@
 #define BRIGHTNESS 255
 #define FRAMES_PER_SECOND 72
 
-#define NUM_PIXELS 75
-#define NUM_STRIPS 6
+#define NUM_PIXELS 70
+#define NUM_STRIPS 8
 
 // For "crawlBaseColor" animation.
 int8_t _baseColorPointer[NUM_STRIPS] = { -1 };
@@ -18,6 +18,7 @@ CRGB _pixelBuffer[NUM_STRIPS][NUM_PIXELS] = { 0 };
 CRGB _leds[NUM_STRIPS * NUM_PIXELS] = { 0 };
 
 // Palettes are [gradient fraction, red, green, blue] order.
+
 DEFINE_GRADIENT_PALETTE(_whaleColors) {
   0, 0, 0, 255,
   255, 0, 255, 240
@@ -48,6 +49,17 @@ DEFINE_GRADIENT_PALETTE(_bellyColors) {
   255, 0, 255, 255
 };
 
+DEFINE_GRADIENT_PALETTE(_back) {
+  0, 0, 64, 255,
+  240, 0, 16, 128,
+  255, 0, 133, 94
+};
+
+DEFINE_GRADIENT_PALETTE(_belly) {
+  0, 201, 206, 255,
+  255, 255, 255, 255
+};
+
 void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, HIGH);
@@ -56,7 +68,6 @@ void setup() {
   Serial.begin(9600);
 
   FastLED.addLeds<WS2811_PORTD, NUM_STRIPS, COLOR_ORDER>(_leds, NUM_PIXELS);
-
   FastLED.setBrightness(BRIGHTNESS);
 
   fill_solid(_leds, NUM_STRIPS * NUM_PIXELS, CRGB::Black);
@@ -67,51 +78,54 @@ void loop() {
   FastLED.show();
   FastLED.delay(1000 / FRAMES_PER_SECOND);
 
-  unsigned long now = millis();
-
-  //  float baseDuration = 4000;
-  //  crawlBaseColor(baseDuration, now, &_baseColorPointer[0], _baseColor[0], _pixelBuffer[0]);
-  //  crawlBaseColor(1.6 * baseDuration, now + 2000, &_baseColorPointer[1], _baseColor[1], _pixelBuffer[1]);
-  //  crawlBaseColor(0.8 * baseDuration, now + 800, &_baseColorPointer[2], _baseColor[2], _pixelBuffer[2]);
-  //  crawlBaseColor(1.0 * baseDuration, now + 2000, &_baseColorPointer[1], _baseColor[1], _pixelBuffer[1]);
-  //  crawlBaseColor(1.0 * baseDuration, now + 800, &_baseColorPointer[2], _baseColor[2], _pixelBuffer[2]);
-
-  /////////////// PROD - USE BELOW CONFIG FOR NOW.
-  //  float baseDuration = 4000;
-  // Back
-  //  crawlBaseColor(1.0 * baseDuration, now + 1200, &_baseColorPointer[5], _baseColor[5], _pixelBuffer[5], _palette_back_turquoise);
-  //  crawlBaseColor(0.95 * baseDuration, now + 1000, &_baseColorPointer[4], _baseColor[4], _pixelBuffer[4], _palette_back_teal);
-  //  crawlBaseColor(baseDuration, now, &_baseColorPointer[0], _baseColor[0], _pixelBuffer[0], _palette_back_blue);
-  //
-  //  // Belly
-  //  crawlBaseColor(0.9 * baseDuration, now + 2500, &_baseColorPointer[1], _baseColor[1], _pixelBuffer[1], _bellyColors);
-  //  crawlBaseColor(1.1 * baseDuration, now + 500, &_baseColorPointer[2], _baseColor[2], _pixelBuffer[2], _bellyColors);
-  //  crawlBaseColor(1.05 * baseDuration, now + 800, &_baseColorPointer[3], _baseColor[3], _pixelBuffer[3], _bellyColors);
-
-  //  render_multi_strip();
-  /////////////// PROD - USE ABOVE CONFIG FOR NOW.
-
-  // TEST ONLY BELOW.
-
-  // Identifying strips.
-  float baseDuration = 4000;
-//  crawlBaseColor(baseDuration, now, &_baseColorPointer[0], _baseColor[0], _pixelBuffer[0], CloudColors_p);
-//  crawlBaseColor(baseDuration, now, &_baseColorPointer[1], _baseColor[1], _pixelBuffer[1], LavaColors_p);
-//  crawlBaseColor(baseDuration * 0.666, now, &_baseColorPointer[2], _baseColor[2], _pixelBuffer[2], ForestColors_p);
-  crawlBaseColor(baseDuration, now, &_baseColorPointer[3], _baseColor[3], _pixelBuffer[3], RainbowColors_p);
-//  crawlBaseColor(baseDuration, now, &_baseColorPointer[4], _baseColor[4], _pixelBuffer[4], PartyColors_p);
-//  crawlBaseColor(baseDuration, now, &_baseColorPointer[5], _baseColor[5], _pixelBuffer[5], OceanColors_p);
-  render_multi_strip();
-
-  // Multistrip virtual
-  //  crawlBaseColor(1.0 * baseDuration, now + 1200, &_baseColorPointer[5], _baseColor[5], _pixelBuffer[5], RainbowColors_p);
-  //  crawlBaseColor(0.95 * baseDuration, now + 1000, &_baseColorPointer[4], _baseColor[4], _pixelBuffer[4], RainbowColors_p);
-  //  crawlBaseColor(baseDuration, now, &_baseColorPointer[0], _baseColor[0], _pixelBuffer[0], RainbowColors_p);
-  //  crawlBaseColor(0.9 * baseDuration, now + 2500, &_baseColorPointer[1], _baseColor[1], _pixelBuffer[1], RainbowColors_p);
-  //  crawlBaseColor(1.1 * baseDuration, now + 500, &_baseColorPointer[2], _baseColor[2], _pixelBuffer[2], RainbowColors_p);
-  //  crawlBaseColor(1.05 * baseDuration, now + 800, &_baseColorPointer[3], _baseColor[3], _pixelBuffer[3], RainbowColors_p);
-  //  render_multi_strip_virtual();
+  crawlSameSpeeds();
+//  crawlDifferentSpeeds();
 }
+
+void crawlSameSpeeds() {
+  const unsigned long now = millis();
+  const float baseDuration = 5999;
+  
+//  crawlBaseColor(1.0 * baseDuration, now, &_baseColorPointer[0], _baseColor[0], _pixelBuffer[0], RainbowColors_p);
+//  crawlBaseColor(0.95 * baseDuration, now, &_baseColorPointer[1], _baseColor[1], _pixelBuffer[1], RainbowColors_p);
+//  crawlBaseColor(0.8 * baseDuration, now, &_baseColorPointer[2], _baseColor[2], _pixelBuffer[2], RainbowColors_p);
+//  crawlBaseColor(1.1 * baseDuration, now, &_baseColorPointer[3], _baseColor[3], _pixelBuffer[3], RainbowColors_p);
+//  crawlBaseColor(1.2 * baseDuration, now, &_baseColorPointer[4], _baseColor[4], _pixelBuffer[4], RainbowColors_p);
+//  crawlBaseColor(1.3 * baseDuration, now, &_baseColorPointer[5], _baseColor[5], _pixelBuffer[5], RainbowColors_p);
+//  crawlBaseColor(1.4 * baseDuration, now, &_baseColorPointer[6], _baseColor[6], _pixelBuffer[6], RainbowColors_p);
+//  crawlBaseColor(1.9 * baseDuration, now, &_baseColorPointer[7], _baseColor[7], _pixelBuffer[7], RainbowColors_p);
+  
+  crawlBaseColor(baseDuration, now, &_baseColorPointer[0], _baseColor[0], _pixelBuffer[0], _back);
+  crawlBaseColor(baseDuration, now, &_baseColorPointer[1], _baseColor[1], _pixelBuffer[1], _back);
+  crawlBaseColor(baseDuration, now, &_baseColorPointer[2], _baseColor[2], _pixelBuffer[2], _back);
+  crawlBaseColor(baseDuration, now, &_baseColorPointer[3], _baseColor[3], _pixelBuffer[3], _back);
+  crawlBaseColor(baseDuration, now, &_baseColorPointer[4], _baseColor[4], _pixelBuffer[4], _belly);
+  crawlBaseColor(baseDuration, now, &_baseColorPointer[5], _baseColor[5], _pixelBuffer[5], _belly);
+  
+  render_multi_strip();
+}
+
+void crawlDifferentSpeeds() {
+  const unsigned long now = millis();
+  const float baseDuration = 5000;
+
+  // Back
+  crawlBaseColor(1.0 * baseDuration, now + 1200, &_baseColorPointer[5], _baseColor[5], _pixelBuffer[5], _palette_back_turquoise);
+  crawlBaseColor(0.95 * baseDuration, now + 1000, &_baseColorPointer[4], _baseColor[4], _pixelBuffer[4], _palette_back_teal);
+  crawlBaseColor(baseDuration, now, &_baseColorPointer[0], _baseColor[0], _pixelBuffer[0], _palette_back_blue);
+
+  crawlBaseColor(baseDuration * 0.8, now, &_baseColorPointer[6], _baseColor[6], _pixelBuffer[6], _palette_back_blue);
+  crawlBaseColor(baseDuration * 0.7, now, &_baseColorPointer[7], _baseColor[7], _pixelBuffer[7], _palette_back_blue);
+
+  // Belly
+  crawlBaseColor(0.9 * baseDuration, now + 2500, &_baseColorPointer[1], _baseColor[1], _pixelBuffer[1], _bellyColors);
+  crawlBaseColor(1.1 * baseDuration, now + 500, &_baseColorPointer[2], _baseColor[2], _pixelBuffer[2], _bellyColors);
+  crawlBaseColor(1.05 * baseDuration, now + 800, &_baseColorPointer[3], _baseColor[3], _pixelBuffer[3], _bellyColors);
+
+  render_multi_strip();
+}
+
+///////////////////////////////////////
 
 void crawlBaseColor(float durationMS, unsigned long nowMS, int8_t *progressIndex, CRGB *scratchBuffer, CRGB *outBuffer, CRGBPalette16 palette) {
   const bool fadeColorIn = true;
