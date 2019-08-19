@@ -17,6 +17,22 @@ CRGB _pixelBuffer[NUM_STRIPS][NUM_PIXELS] = { 0 };
 // Physical LEDs.
 CRGB _leds[NUM_STRIPS * NUM_PIXELS] = { 0 };
 
+const int8_t _safetyLights[] = {
+  7,
+  20, 21,
+  36, 37,
+  58, 59,
+  68
+};
+
+// Palettes at end of file.
+//extern const TProgmemRGBGradientPalettePtr _palettes[];
+extern const CRGBPalette16 _palettes[];
+extern const uint8_t _numPalettes;
+CRGBPalette16 _currentPalette;
+CRGBPalette16 _targetPalette;
+int8_t _palettePointer = 0;
+
 // Palettes are [gradient fraction, red, green, blue] order.
 
 DEFINE_GRADIENT_PALETTE(_whaleColors) {
@@ -49,13 +65,12 @@ DEFINE_GRADIENT_PALETTE(_bellyColors) {
   255, 0, 255, 255
 };
 
-DEFINE_GRADIENT_PALETTE(_back) {
+DEFINE_GRADIENT_PALETTE(_back_blue) {
   0, 0, 64, 255,
-  240, 0, 16, 128,
-  255, 0, 133, 94
+  255, 0, 16, 128
 };
 
-DEFINE_GRADIENT_PALETTE(_belly) {
+DEFINE_GRADIENT_PALETTE(_belly_white_blue) {
   0, 201, 206, 255,
   255, 255, 255, 255
 };
@@ -72,37 +87,61 @@ void setup() {
 
   fill_solid(_leds, NUM_STRIPS * NUM_PIXELS, CRGB::Black);
   digitalWrite(LED_BUILTIN, HIGH);
+
+  _currentPalette = _palettes[0];
+  _targetPalette = _palettes[0];
 }
 
 void loop() {
   FastLED.show();
   FastLED.delay(1000 / FRAMES_PER_SECOND);
 
+  updateColorPalette();
   crawlSameSpeeds();
-//  crawlDifferentSpeeds();
+  safetyLights();
+
+  // Last, to render out.
+  render_multi_strip();
+}
+
+///////////////////////////////////////
+
+void updateColorPalette() {
+  EVERY_N_SECONDS(10) {
+    _palettePointer = (_palettePointer + 1) % _numPalettes;
+    _targetPalette = _palettes[_palettePointer];
+    Serial.print("_numPalettes: ");
+    Serial.print(_numPalettes);
+    Serial.print(" _palettePointer: ");
+    Serial.println(_palettePointer);
+  }
+
+  EVERY_N_MILLISECONDS(40) {
+    nblendPaletteTowardPalette(_currentPalette, _targetPalette, 16);
+  }
+}
+
+//CRGB _safetyColors[];
+void safetyLights() {
+//  for (int8_t i = 0; i < sizeof(_safetyLights) / sizeof(int8_t); i++) {
+////    _pixelBuffer[0][_safetyLights[i]] = ColorFromPalette(_currentPalette, random8(), 255, LINEARBLEND);
+//    _pixelBuffer[0][_safetyLights[i]].maximizeBrightness(255);
+//  }
 }
 
 void crawlSameSpeeds() {
   const unsigned long now = millis();
-  const float baseDuration = 5999;
+  const float baseDuration = 4999;
+
+  const CRGBPalette16 back = _currentPalette;
+  const CRGBPalette16 belly = _belly_white_blue;
   
-//  crawlBaseColor(1.0 * baseDuration, now, &_baseColorPointer[0], _baseColor[0], _pixelBuffer[0], RainbowColors_p);
-//  crawlBaseColor(0.95 * baseDuration, now, &_baseColorPointer[1], _baseColor[1], _pixelBuffer[1], RainbowColors_p);
-//  crawlBaseColor(0.8 * baseDuration, now, &_baseColorPointer[2], _baseColor[2], _pixelBuffer[2], RainbowColors_p);
-//  crawlBaseColor(1.1 * baseDuration, now, &_baseColorPointer[3], _baseColor[3], _pixelBuffer[3], RainbowColors_p);
-//  crawlBaseColor(1.2 * baseDuration, now, &_baseColorPointer[4], _baseColor[4], _pixelBuffer[4], RainbowColors_p);
-//  crawlBaseColor(1.3 * baseDuration, now, &_baseColorPointer[5], _baseColor[5], _pixelBuffer[5], RainbowColors_p);
-//  crawlBaseColor(1.4 * baseDuration, now, &_baseColorPointer[6], _baseColor[6], _pixelBuffer[6], RainbowColors_p);
-//  crawlBaseColor(1.9 * baseDuration, now, &_baseColorPointer[7], _baseColor[7], _pixelBuffer[7], RainbowColors_p);
-  
-  crawlBaseColor(baseDuration, now, &_baseColorPointer[0], _baseColor[0], _pixelBuffer[0], _back);
-  crawlBaseColor(baseDuration, now, &_baseColorPointer[1], _baseColor[1], _pixelBuffer[1], _back);
-  crawlBaseColor(baseDuration, now, &_baseColorPointer[2], _baseColor[2], _pixelBuffer[2], _back);
-  crawlBaseColor(baseDuration, now, &_baseColorPointer[3], _baseColor[3], _pixelBuffer[3], _back);
-  crawlBaseColor(baseDuration, now, &_baseColorPointer[4], _baseColor[4], _pixelBuffer[4], _belly);
-  crawlBaseColor(baseDuration, now, &_baseColorPointer[5], _baseColor[5], _pixelBuffer[5], _belly);
-  
-  render_multi_strip();
+  crawlBaseColor(baseDuration, now, &_baseColorPointer[0], _baseColor[0], _pixelBuffer[0], back);
+  crawlBaseColor(baseDuration, now, &_baseColorPointer[1], _baseColor[1], _pixelBuffer[1], back);
+  crawlBaseColor(baseDuration, now, &_baseColorPointer[2], _baseColor[2], _pixelBuffer[2], back);
+  crawlBaseColor(baseDuration, now, &_baseColorPointer[3], _baseColor[3], _pixelBuffer[3], back);
+  crawlBaseColor(baseDuration, now, &_baseColorPointer[4], _baseColor[4], _pixelBuffer[4], belly);
+  crawlBaseColor(baseDuration, now, &_baseColorPointer[5], _baseColor[5], _pixelBuffer[5], belly);
 }
 
 void crawlDifferentSpeeds() {
@@ -141,7 +180,8 @@ void crawlBaseColor(float durationMS, unsigned long nowMS, int8_t *progressIndex
   // Fade the other pixels out.
   // How many steps (as %) does it take to fade out, based on our framerate and speed?
   int8_t fadeOutFraction = 100 / (durationMS / FRAMES_PER_SECOND);
-  int8_t fadeOutAdjust = durationMS >= 3000 ? -2 : 0;
+  // Make fade out take a bit longer when duration is longer.
+  int8_t fadeOutAdjust = durationMS >= 3000 ? -1 * durationMS / 1200 : 0;
   for (int8_t i = 0; i < NUM_PIXELS; i++ ) {
     if (i == target) {
       continue;
@@ -170,9 +210,9 @@ void crawlBaseColor(float durationMS, unsigned long nowMS, int8_t *progressIndex
     outBuffer[i] = scratchBuffer[i];
   }
 
-    Serial.print(durationMS);
-    Serial.print("\t");
-    Serial.println(fractionComplete);
+//    Serial.print(durationMS);
+//    Serial.print("\t");
+//    Serial.println(fractionComplete);
 }
 
 float calculateFractionComplete(unsigned long nowMS, float durationMS) {
@@ -208,7 +248,7 @@ float calculateFractionComplete(unsigned long nowMS, float durationMS) {
 
 // Render out the pixel buffer to the physical LEDs. Uses multiple LED strands.
 void render_multi_strip() {
-  bool shouldLog = true;
+  bool shouldLog = false;
   if (shouldLog) { Serial.println(">>>>>>>>>"); }
   
   for (int8_t strip = 0; strip < NUM_STRIPS; strip++) {
@@ -257,3 +297,35 @@ void render_multi_strip() {
 //    _leds[i + 2 * NUM_PIXELS] = _pixelBuffer[2][i];
 //  }
 //}
+
+////////////////////////////////////////////
+
+// http://soliton.vm.bytemark.co.uk/pub/cpt-city/nd/basic/tn/BlacK_Red_Magenta_Yellow.png.index.html
+DEFINE_GRADIENT_PALETTE(Red_Magenta_Yellow_gp) {
+   84, 255,  0,  0,
+  127, 255,  0, 45,
+  170, 255,  0,255,
+  212, 255, 55, 45,
+  255, 255,255,  0};
+
+// http://soliton.vm.bytemark.co.uk/pub/cpt-city/nd/basic/tn/Blue_Cyan_Yellow.png.index.html
+DEFINE_GRADIENT_PALETTE(Blue_Cyan_Yellow_gp) {
+    0,   0,  0,255,
+   63,   0, 55,255,
+  127,   0,255,255,
+  191,  42,255, 45,
+  255, 255,255,  0};
+
+const CRGBPalette16 _palettes[] = {
+  _back_blue,
+  RainbowColors_p,
+  OceanColors_p,
+  ForestColors_p,
+  PartyColors_p,
+  HeatColors_p,
+  Blue_Cyan_Yellow_gp,
+  Red_Magenta_Yellow_gp
+};
+ 
+const uint8_t _numPalettes = sizeof(_palettes) / sizeof(CRGBPalette16);
+ 
