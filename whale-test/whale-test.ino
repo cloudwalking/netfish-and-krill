@@ -110,10 +110,10 @@ void updateColorPalette() {
   EVERY_N_SECONDS(10) {
     _palettePointer = (_palettePointer + 1) % _numPalettes;
     _targetPalette = _palettes[_palettePointer];
-    Serial.print("_numPalettes: ");
-    Serial.print(_numPalettes);
-    Serial.print(" _palettePointer: ");
-    Serial.println(_palettePointer);
+//    Serial.print("_numPalettes: ");
+//    Serial.print(_numPalettes);
+//    Serial.print(" _palettePointer: ");
+//    Serial.println(_palettePointer);
   }
 
   EVERY_N_MILLISECONDS(40) {
@@ -131,7 +131,7 @@ void safetyLights() {
 
 void crawlSameSpeeds() {
   const unsigned long now = millis();
-  const float baseDuration = 4999;
+  const float baseDuration = 4200;
 
   const CRGBPalette16 back = _currentPalette;
   const CRGBPalette16 belly = _belly_white_blue;
@@ -319,11 +319,17 @@ DEFINE_GRADIENT_PALETTE(Blue_Cyan_Yellow_gp) {
 const CRGBPalette16 _palettes[] = {
   _back_blue,
   RainbowColors_p,
+  _back_blue,
   OceanColors_p,
+  _back_blue,
   ForestColors_p,
+  _back_blue,
   PartyColors_p,
+  _back_blue,
   HeatColors_p,
+  _back_blue,
   Blue_Cyan_Yellow_gp,
+  _back_blue,
   Red_Magenta_Yellow_gp
 };
  
